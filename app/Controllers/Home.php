@@ -68,11 +68,12 @@ class Home extends BaseController
                     array_push($equipoRojo, get_object_vars($d));
                 }
             }
-            echo "<pre>";
-            print_r($equipoAzul);
-            echo "<br>";
-            print_r($equipoRojo);
-            echo "</pre>";
+            // echo "<pre>";
+            // print_r($equipoAzul);
+            // echo "<br>";
+            // print_r($equipoRojo);
+            // echo "</pre>";
+            $arrEquipoAzul = $this->getBono($equipoAzul);
 
             // $gpm = $this->getGPM($d); //obtiene los goles por mes
             // $porcentajeBono = $this->getBono($d, $gpm);
@@ -87,7 +88,7 @@ class Home extends BaseController
     public function getGPM($data){
         // CALCULAMOS LOS GOLES POR MES Y SACAMOS EL PORCENTAJE
         try{
-            switch($data->nivel){
+            switch($data['nivel']){
                 case "A":
                     $gpm = 5;
                     break;
@@ -108,7 +109,7 @@ class Home extends BaseController
         }
     }
 
-    public function getBono($jugador, $gpm){
+    public function getBono($equipo){
         /*
             El bono se divide en dos partes:
             1.- Goles individuales
@@ -116,6 +117,39 @@ class Home extends BaseController
             2.- Goles por equipo
                 Se saca la sumatoria de los goles por equipo entre la suma de los goles por mes segun el nivel
         */
-        //var_dump($jugador);
+        // $jugadores = count($equipo);
+        $golesAnotados = 0;
+        $golesNecesarios = 0;
+        $golesEquipo = 0;
+
+        //calculando goles por equipo
+        foreach($equipo as $jugador){
+            $golesNecesarios = $this->getGPM($jugador);
+            $golesAnotados = $golesAnotados + $jugador['goles'];
+            $golesEquipo = $golesEquipo + $golesNecesarios;
+        }
+        $promedioEquipo = $golesAnotados / $golesEquipo * 100;
+        echo "Goles Anotados: $golesAnotados, Goles por Equipo: $golesEquipo. Promedio: $promedioEquipo% <br>";
+
+        //calculando goles por individual
+        foreach($equipo as $jugador){
+            $golesNecesarios = $this->getGPM($jugador);
+            $golesAnotados = $golesAnotados + $jugador['goles'];
+            ///////// Goles Individuales /////////
+            $promedioIndividual = $jugador['goles'] / $golesNecesarios * 100;
+            echo $jugador['nombre']." -> Goles anotados: ".$jugador['goles'].", Goles Necesarios: $golesNecesarios. Promedio Individual: $promedioIndividual% <br>";
+            $porcentajeBono = ($promedioEquipo + $promedioIndividual) / 2;
+            $bonoVariable = $porcentajeBono * $jugador['bono'] / 100;
+            $totalPago = $bonoVariable + $jugador['sueldo'];
+            echo $jugador['nombre']." <br> Sueldo Fijo: ".$jugador['sueldo']." <br>Bono: $bonoVariable <br> Total a pagar: $totalPago";
+            break;
+        }
+        $this->prettyPrint($equipo);
+    }
+
+    public function prettyPrint($data){
+        echo "<pre>";
+        print_r($data);
+        echo "</pre>";
     }
 }
