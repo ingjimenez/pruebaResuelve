@@ -80,8 +80,8 @@ class Home extends BaseController
             $arrEquipoRojo = $this->getBono($equipoRojo);
             // 89N3PDyZzakoH7W6n8ZrjGDDktjh8iWFG6eKRvi3kvpQ
 
-            $arr = array_merge($arrEquipoAzul,$arrEquipoRojo);
-            return $arr; //ver como hacer un response
+            $arr['jugadores'] = array_merge($arrEquipoAzul,$arrEquipoRojo);
+            return json_encode($arr);
 
             // $gpm = $this->getGPM($d); //obtiene los goles por mes
             // $porcentajeBono = $this->getBono($d, $gpm);
