@@ -36,7 +36,8 @@ class Home extends BaseController
             $arr['jugadores'] = array_merge($arrEquipoAzul,$arrEquipoRojo);
 
             // Convertimos el array a JSON y lo regresamos a la petición realizada
-            return json_encode($arr);
+            // return json_encode($arr);
+            return $this->response->setStatusCode(200)->setJSON(json_encode($arr));
         }
         catch(\Exception $e){
             echo "Ha ocurrido un error: ".$e->getMessage();
