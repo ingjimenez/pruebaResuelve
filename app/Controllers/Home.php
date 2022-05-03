@@ -2,6 +2,9 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\HTTP\Response;
+use PhpCsFixer\Fixer\Alias\ArrayPushFixer;
+
 class Home extends BaseController
 {
     public function index()
@@ -11,53 +14,53 @@ class Home extends BaseController
 
     public function getPlayers(){
         try{
-            // $json = file_get_contents('php://input');
-            // $data = json_decode($json);
+            $json = file_get_contents('php://input');
+            $data = json_decode($json);
             // var_dump($data);
 
-            $json = '{
-                "jugadores" : [  
-                    {  
-                        "nombre":"Juan Perez",
-                        "nivel":"C",
-                        "goles":10,
-                        "sueldo":50000,
-                        "bono":25000,
-                        "sueldo_completo":null,
-                        "equipo":"rojo"
-                    },
-                    {  
-                        "nombre":"EL Cuauh",
-                        "nivel":"Cuauh",
-                        "goles":30,
-                        "sueldo":100000,
-                        "bono":30000,
-                        "sueldo_completo":null,
-                        "equipo":"azul"
-                    },
-                    {  
-                        "nombre":"Cosme Fulanito",
-                        "nivel":"A",
-                        "goles":7,
-                        "sueldo":20000,
-                        "bono":10000,
-                        "sueldo_completo":null,
-                        "equipo":"azul"             
-                    },
-                    {  
-                        "nombre":"El Rulo",
-                        "nivel":"B",
-                        "goles":9,
-                        "sueldo":30000,
-                        "bono":15000,
-                        "sueldo_completo":null,
-                        "equipo":"rojo"
-                    }
-                ]
-            }';
+            // $json = '{
+            //     "jugadores" : [  
+            //         {  
+            //             "nombre":"Juan Perez",
+            //             "nivel":"C",
+            //             "goles":10,
+            //             "sueldo":50000,
+            //             "bono":25000,
+            //             "sueldo_completo":null,
+            //             "equipo":"rojo"
+            //         },
+            //         {  
+            //             "nombre":"EL Cuauh",
+            //             "nivel":"Cuauh",
+            //             "goles":30,
+            //             "sueldo":100000,
+            //             "bono":30000,
+            //             "sueldo_completo":null,
+            //             "equipo":"azul"
+            //         },
+            //         {  
+            //             "nombre":"Cosme Fulanito",
+            //             "nivel":"A",
+            //             "goles":7,
+            //             "sueldo":20000,
+            //             "bono":10000,
+            //             "sueldo_completo":null,
+            //             "equipo":"azul"             
+            //         },
+            //         {  
+            //             "nombre":"El Rulo",
+            //             "nivel":"B",
+            //             "goles":9,
+            //             "sueldo":30000,
+            //             "bono":15000,
+            //             "sueldo_completo":null,
+            //             "equipo":"rojo"
+            //         }
+            //     ]
+            // }';
             
             $data = json_decode($json);
-            // $nj = count($data->jugadores); //conociendo el número de jugadores
+            //$nj = count($data->jugadores); //conociendo el número de jugadores
             $equipoAzul = [];
             $equipoRojo = [];
             foreach($data->jugadores as $d){
@@ -74,6 +77,11 @@ class Home extends BaseController
             // print_r($equipoRojo);
             // echo "</pre>";
             $arrEquipoAzul = $this->getBono($equipoAzul);
+            $arrEquipoRojo = $this->getBono($equipoRojo);
+            // 89N3PDyZzakoH7W6n8ZrjGDDktjh8iWFG6eKRvi3kvpQ
+
+            $arr = array_merge($arrEquipoAzul,$arrEquipoRojo);
+            return $arr;
 
             // $gpm = $this->getGPM($d); //obtiene los goles por mes
             // $porcentajeBono = $this->getBono($d, $gpm);
@@ -129,22 +137,30 @@ class Home extends BaseController
             $golesEquipo = $golesEquipo + $golesNecesarios;
         }
         $promedioEquipo = $golesAnotados / $golesEquipo * 100;
-        echo "Goles Anotados: $golesAnotados, Goles por Equipo: $golesEquipo. Promedio: $promedioEquipo% <br>";
+        // echo "Goles Anotados: $golesAnotados, Goles por Equipo: $golesEquipo. Promedio: $promedioEquipo% <br>";
 
         //calculando goles por individual
+        $x = 0;
         foreach($equipo as $jugador){
             $golesNecesarios = $this->getGPM($jugador);
             $golesAnotados = $golesAnotados + $jugador['goles'];
             ///////// Goles Individuales /////////
             $promedioIndividual = $jugador['goles'] / $golesNecesarios * 100;
-            echo $jugador['nombre']." -> Goles anotados: ".$jugador['goles'].", Goles Necesarios: $golesNecesarios. Promedio Individual: $promedioIndividual% <br>";
+            // echo $jugador['nombre']." -> Goles anotados: ".$jugador['goles'].", Goles Necesarios: $golesNecesarios. Promedio Individual: $promedioIndividual% <br>";
             $porcentajeBono = ($promedioEquipo + $promedioIndividual) / 2;
             $bonoVariable = $porcentajeBono * $jugador['bono'] / 100;
             $totalPago = $bonoVariable + $jugador['sueldo'];
-            echo $jugador['nombre']." <br> Sueldo Fijo: ".$jugador['sueldo']." <br>Bono: $bonoVariable <br> Total a pagar: $totalPago";
-            break;
+            // echo $jugador['nombre']." <br> Sueldo Fijo: ".$jugador['sueldo']." <br>Bono: $bonoVariable <br> Total a pagar: $totalPago <br>";
+            // echo "<br>";
+
+            $arr = array('sueldo_completo' => $totalPago);
+            $jugador = array_replace($jugador,$arr);
+            // $this->prettyPrint($jugador);
+            $equipo[$x] = array_replace($equipo[$x], $arr);
+            $x = $x + 1;
         }
-        $this->prettyPrint($equipo);
+        //$this->prettyPrint($equipo);
+        return $equipo;
     }
 
     public function prettyPrint($data){
