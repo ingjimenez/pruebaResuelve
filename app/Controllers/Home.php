@@ -81,7 +81,7 @@ class Home extends BaseController
             // 89N3PDyZzakoH7W6n8ZrjGDDktjh8iWFG6eKRvi3kvpQ
 
             $arr = array_merge($arrEquipoAzul,$arrEquipoRojo);
-            return $arr;
+            return $arr; //ver como hacer un response
 
             // $gpm = $this->getGPM($d); //obtiene los goles por mes
             // $porcentajeBono = $this->getBono($d, $gpm);
