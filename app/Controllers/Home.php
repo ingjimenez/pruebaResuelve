@@ -2,9 +2,6 @@
 
 namespace App\Controllers;
 
-use CodeIgniter\HTTP\Response;
-use PhpCsFixer\Fixer\Alias\ArrayPushFixer;
-
 class Home extends BaseController
 {
     public function index()
@@ -13,56 +10,15 @@ class Home extends BaseController
     }
 
     public function getPlayers(){
+        // Recibimos los jugadores en un JSON
         try{
             $json = file_get_contents('php://input');
             $data = json_decode($json);
-            // var_dump($data);
-
-            // $json = '{
-            //     "jugadores" : [  
-            //         {  
-            //             "nombre":"Juan Perez",
-            //             "nivel":"C",
-            //             "goles":10,
-            //             "sueldo":50000,
-            //             "bono":25000,
-            //             "sueldo_completo":null,
-            //             "equipo":"rojo"
-            //         },
-            //         {  
-            //             "nombre":"EL Cuauh",
-            //             "nivel":"Cuauh",
-            //             "goles":30,
-            //             "sueldo":100000,
-            //             "bono":30000,
-            //             "sueldo_completo":null,
-            //             "equipo":"azul"
-            //         },
-            //         {  
-            //             "nombre":"Cosme Fulanito",
-            //             "nivel":"A",
-            //             "goles":7,
-            //             "sueldo":20000,
-            //             "bono":10000,
-            //             "sueldo_completo":null,
-            //             "equipo":"azul"             
-            //         },
-            //         {  
-            //             "nombre":"El Rulo",
-            //             "nivel":"B",
-            //             "goles":9,
-            //             "sueldo":30000,
-            //             "bono":15000,
-            //             "sueldo_completo":null,
-            //             "equipo":"rojo"
-            //         }
-            //     ]
-            // }';
             
-            $data = json_decode($json);
-            //$nj = count($data->jugadores); //conociendo el número de jugadores
+            // Creamos variables para los equipos (después se deberán sacar los equipos automáticamente)
             $equipoAzul = [];
             $equipoRojo = [];
+            // Asignamos los jugadores a los equipos correspondientes
             foreach($data->jugadores as $d){
                 if($d->equipo == "azul"){
                     array_push($equipoAzul, get_object_vars($d));
@@ -71,22 +27,16 @@ class Home extends BaseController
                     array_push($equipoRojo, get_object_vars($d));
                 }
             }
-            // echo "<pre>";
-            // print_r($equipoAzul);
-            // echo "<br>";
-            // print_r($equipoRojo);
-            // echo "</pre>";
+
+            // Obtenemos los bonos de cada jugador
             $arrEquipoAzul = $this->getBono($equipoAzul);
             $arrEquipoRojo = $this->getBono($equipoRojo);
-            // 89N3PDyZzakoH7W6n8ZrjGDDktjh8iWFG6eKRvi3kvpQ
 
+            // Creamos un array para agregar los jugadores con su sueldo completo
             $arr['jugadores'] = array_merge($arrEquipoAzul,$arrEquipoRojo);
-            return json_encode($arr);
 
-            // $gpm = $this->getGPM($d); //obtiene los goles por mes
-            // $porcentajeBono = $this->getBono($d, $gpm);
-            // echo $porcentajeBono;
-            // echo $d->nombre." anotó ".$d->goles." goles de ".$gpm."<br>";
+            // Convertimos el array a JSON y lo regresamos a la petición realizada
+            return json_encode($arr);
         }
         catch(\Exception $e){
             echo "Ha ocurrido un error: ".$e->getMessage();
@@ -94,7 +44,7 @@ class Home extends BaseController
     }
 
     public function getGPM($data){
-        // CALCULAMOS LOS GOLES POR MES Y SACAMOS EL PORCENTAJE
+        // CALCULAMOS LOS GOLES POR MES NECESARIOS SEGUN EL NIVEL
         try{
             switch($data['nivel']){
                 case "A":
@@ -121,51 +71,46 @@ class Home extends BaseController
         /*
             El bono se divide en dos partes:
             1.- Goles individuales
-                Para calcular el porcentaje de los goles individuales nos basamos en la tabla de goles por mes segun el nivel
+                Para calcular el porcentaje de los goles individuales nos basamos en la tabla de goles por mes según el nivel
             2.- Goles por equipo
-                Se saca la sumatoria de los goles por equipo entre la suma de los goles por mes segun el nivel
+                Se saca la sumatoria de los goles por equipo entre la suma de los goles por mes según el nivel
         */
-        // $jugadores = count($equipo);
         $golesAnotados = 0;
         $golesNecesarios = 0;
         $golesEquipo = 0;
 
-        //calculando goles por equipo
+        // Calculando goles por equipo
         foreach($equipo as $jugador){
             $golesNecesarios = $this->getGPM($jugador);
             $golesAnotados = $golesAnotados + $jugador['goles'];
             $golesEquipo = $golesEquipo + $golesNecesarios;
         }
+        // Sacamos el promedio por equipo
         $promedioEquipo = $golesAnotados / $golesEquipo * 100;
-        // echo "Goles Anotados: $golesAnotados, Goles por Equipo: $golesEquipo. Promedio: $promedioEquipo% <br>";
-
-        //calculando goles por individual
+        
+        // Calculando goles por individual
         $x = 0;
         foreach($equipo as $jugador){
             $golesNecesarios = $this->getGPM($jugador);
             $golesAnotados = $golesAnotados + $jugador['goles'];
-            ///////// Goles Individuales /////////
+
+            // Obtenemos el promedio individual
             $promedioIndividual = $jugador['goles'] / $golesNecesarios * 100;
-            // echo $jugador['nombre']." -> Goles anotados: ".$jugador['goles'].", Goles Necesarios: $golesNecesarios. Promedio Individual: $promedioIndividual% <br>";
             $porcentajeBono = ($promedioEquipo + $promedioIndividual) / 2;
             $bonoVariable = $porcentajeBono * $jugador['bono'] / 100;
+            
+            // Generamos el pago total del jugador
             $totalPago = $bonoVariable + $jugador['sueldo'];
-            // echo $jugador['nombre']." <br> Sueldo Fijo: ".$jugador['sueldo']." <br>Bono: $bonoVariable <br> Total a pagar: $totalPago <br>";
-            // echo "<br>";
-
+            
+            // Actualizamos el sueldo completo del array
             $arr = array('sueldo_completo' => $totalPago);
             $jugador = array_replace($jugador,$arr);
-            // $this->prettyPrint($jugador);
+
+            // Actualizamos el jugador en el array del equipo
             $equipo[$x] = array_replace($equipo[$x], $arr);
             $x = $x + 1;
         }
-        //$this->prettyPrint($equipo);
+        // Regresamos el equipo con los sueldos de los jugadores actualizados
         return $equipo;
-    }
-
-    public function prettyPrint($data){
-        echo "<pre>";
-        print_r($data);
-        echo "</pre>";
     }
 }
