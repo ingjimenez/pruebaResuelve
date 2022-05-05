@@ -36,7 +36,7 @@ class Home extends BaseController
         }
     }
 
-    public function getEquipos($data){
+    private function getEquipos($data){
         try{
             $equipos = array();
             foreach($data->jugadores as $d){
@@ -52,7 +52,7 @@ class Home extends BaseController
         }
     }
 
-    public function getGPM($data){
+    private function getGPM($data){
         // CALCULAMOS LOS GOLES POR MES NECESARIOS SEGUN EL NIVEL
         try{
             switch($data['nivel']){
@@ -76,7 +76,7 @@ class Home extends BaseController
         }
     }
 
-    public function getBono($equipo){
+    private function getBono($equipo){
         /*
             El bono se divide en dos partes:
             1.- Goles individuales
