@@ -32,7 +32,7 @@ class Home extends BaseController
             return $this->response->setStatusCode(200)->setJSON(json_encode($r));
         }
         catch(\Exception $e){
-            echo "Ha ocurrido un error: ".$e->getMessage();
+            return $this->response->setStatusCode(400)->setJSON(json_encode("error"));
         }
     }
 
@@ -48,7 +48,7 @@ class Home extends BaseController
             return $equipos;
         }
         catch(\Exception $e){
-            echo "ha ocurrido un error: ".$e->getMessage();
+            return $this->response->setStatusCode(400)->setJSON(json_encode("error"));
         }
     }
 
@@ -72,7 +72,7 @@ class Home extends BaseController
             return $gpm;
         }
         catch(\Exception $e){
-            return $e->getMessage();
+            return $this->response->setStatusCode(400)->setJSON(json_encode("error"));
         }
     }
 
